@@ -14,11 +14,29 @@
     <style>
       body { margin: 0; background: #f4f2f8; }
       .dev-site-header { height: 72px; background: #fff; border-bottom: 1px solid #eceaf1; display: flex; align-items: center; padding: 0 16px; }
+      .dev-site-header a { display: block; border-radius: 6px; }
+      .dev-site-header a:focus-visible { outline: 2px solid #c8102e; outline-offset: 4px; }
       .dev-site-header img { height: 44px; width: auto; display: block; }
     </style>
   </head>
   <body>
-    <div class="dev-site-header"><img src="/petzadore-logo.png" alt="PetzAdore" width="139" height="44" /></div>
+    <div class="dev-site-header">
+      <a href="/" id="home-link" aria-label="PetzAdore home">
+        <img src="/petzadore-logo.png" alt="PetzAdore" width="139" height="44" />
+      </a>
+    </div>
+    <script>
+      // Home = the first step: drop saved wizard progress (sample pets stay).
+      document.getElementById('home-link').addEventListener('click', function () {
+        try {
+          Object.keys(sessionStorage).forEach(function (key) {
+            if (key.indexOf('pzi:wizard:') === 0) sessionStorage.removeItem(key);
+          });
+        } catch (e) {
+          // storage blocked: nothing saved to clear
+        }
+      });
+    </script>
     <div id="petzadore-insurance-root" class="pzi-root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
