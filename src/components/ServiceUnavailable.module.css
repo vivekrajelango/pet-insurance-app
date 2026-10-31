@@ -101,42 +101,80 @@
 }
 
 .fur {
-  fill: #e0a96d;
+  fill: #a9aebb;
 }
 
-.patch,
-.ear {
-  fill: #a8693a;
+.stripe {
+  fill: none;
+  stroke: #767b89;
+  stroke-width: 3;
+  stroke-linecap: round;
 }
 
-.muzzle {
-  fill: #f6dcbc;
+.innerEar {
+  fill: #f4b6c2;
+}
+
+.muzzle,
+.paw {
+  fill: #eef0f4;
 }
 
 .nose {
-  fill: #2b2830;
+  fill: #e5788b;
 }
 
-.eye {
+.eye,
+.mouth {
   fill: none;
   stroke: #2b2830;
   stroke-width: 2.4;
   stroke-linecap: round;
 }
 
+.mouth {
+  stroke-width: 1.4;
+}
+
+.whisker {
+  stroke: #5a5866;
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
 .blush {
   fill: #f19aa6;
-  opacity: 0.7;
+  opacity: 0.6;
+}
+
+.tail,
+.tailStripes,
+.tailEnd {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
 }
 
 .tail {
-  fill: none;
-  stroke: #a8693a;
-  stroke-width: 9;
-  stroke-linecap: round;
+  stroke: #a9aebb;
+}
+
+.tailStripes {
+  stroke: #767b89;
+  stroke-linecap: butt;
+  stroke-dasharray: 4 9;
+}
+
+.tailEnd {
+  stroke: #767b89;
+}
+
+/* The tip pivots where it joins the rest of the tail (its bottom-right corner) */
+.tailTip {
   transform-box: fill-box;
-  transform-origin: 0% 100%;
-  animation: wag 1.2s ease-in-out infinite;
+  transform-origin: 100% 100%;
+  animation: twitch 2.4s ease-in-out infinite;
 }
 
 .breathe {
@@ -173,7 +211,7 @@
   margin-top: 18px;
 }
 
-.paw {
+.pawPrint {
   width: 20px;
   height: 20px;
   fill: var(--pzi-red);
@@ -181,11 +219,11 @@
   animation: step 4.2s ease-in-out infinite;
 }
 
-.paw:nth-child(odd) {
+.pawPrint:nth-child(odd) {
   transform: translateY(6px) rotate(80deg);
 }
 
-.paw:nth-child(even) {
+.pawPrint:nth-child(even) {
   transform: translateY(-4px) rotate(100deg);
 }
 
@@ -201,13 +239,20 @@
   }
 }
 
-@keyframes wag {
+@keyframes twitch {
   0%,
+  55%,
   100% {
-    transform: rotate(-6deg);
+    transform: rotate(0deg);
   }
-  50% {
-    transform: rotate(10deg);
+  65% {
+    transform: rotate(-14deg);
+  }
+  75% {
+    transform: rotate(6deg);
+  }
+  85% {
+    transform: rotate(-8deg);
   }
 }
 
@@ -262,14 +307,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   .spark,
-  .tail,
+  .tailTip,
   .breathe,
   .z,
-  .paw {
+  .pawPrint {
     animation: none;
   }
   .z,
-  .paw {
+  .pawPrint {
     opacity: 0.55;
   }
 }
