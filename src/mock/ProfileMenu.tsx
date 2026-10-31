@@ -1,5 +1,6 @@
 import { Avatar, Button, Menu, Popover } from 'antd';
 import {
+  DisconnectOutlined,
   FileProtectOutlined,
   LoginOutlined,
   LogoutOutlined,
@@ -52,6 +53,8 @@ export function ProfileMenu({ loggedOut }: { loggedOut: boolean }) {
           if (key === 'reset') {
             resetMockData();
             window.location.reload();
+          } else if (key === 'unavailable') {
+            switchScenario('unavailable');
           } else if (key === 'logout') {
             switchScenario('loggedOut');
           }
@@ -73,6 +76,11 @@ export function ProfileMenu({ loggedOut }: { loggedOut: boolean }) {
             label: <a href='#settings'>Settings</a>,
           },
           { type: 'divider' },
+          {
+            key: 'unavailable',
+            icon: <DisconnectOutlined />,
+            label: 'Service unavailable page',
+          },
           { key: 'reset', icon: <ReloadOutlined />, label: 'Reset demo data' },
           {
             key: 'logout',

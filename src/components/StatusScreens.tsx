@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Button, Spin } from 'antd';
 import { CheckOutlined, LockOutlined } from '@ant-design/icons';
 import { ApiError } from '../api/client';
+import { ServiceUnavailable } from './ServiceUnavailable';
 import styles from './StatusScreens.module.css';
 
 /** Centred white card used by the status screens in the wireframes. */
@@ -49,7 +50,10 @@ export function Loading({ label = 'Loading…' }: { label?: string }) {
   );
 }
 
-/** Friendly message for a failed call, with Retry. Session-ended errors are handled by App. */
+/**
+ * Friendly message for a failed call, with Retry. Session-ended errors are handled by App.
+ * Backend down or unreachable (network error, 5xx) shows the full "Service unavailable" page.
+ */
 export function ErrorPanel({
   error,
   onRetry,
@@ -59,10 +63,9 @@ export function ErrorPanel({
   onRetry?: () => void;
   title?: string;
 }) {
-  const message =
-    error instanceof ApiError && error.status >= 500
-      ? 'Something went wrong on our side. Please try again in a moment.'
-      : error.message;
+  if (error instanceof ApiError && (error.status === 0 || error.status >= 500)) {
+    return <ServiceUnavailable onRetry={onRetry} reference={error.status ? String(error.status) : error.code} />;
+  }
   return (
     <StatusCard
       align="left"
@@ -75,7 +78,7 @@ export function ErrorPanel({
         )
       }
     >
-      {message}
+      {error.message}
     </StatusCard>
   );
 }
@@ -128,11 +131,11 @@ export function LoggedOut({ loginUrl, registerUrl }: { loginUrl: string; registe
 
 /** No config on the page (plugin not set up, or `npm run dev` without VITE_DEV_TOKEN). */
 export function NotConfigured() {
+  if (!import.meta.env.DEV) return <ServiceUnavailable reference="NOT_CONFIGURED" />;
   return (
     <StatusCard title="Insurance is temporarily unavailable">
-      {import.meta.env.DEV
-        ? 'Dev: set VITE_MOCK_API=true (screens with sample data) or VITE_DEV_TOKEN in frontend/.env.local, or open the WordPress page.'
-        : 'Please try again later.'}
+      Dev: set VITE_MOCK_API=true (screens with sample data) or VITE_DEV_TOKEN in frontend/.env.local, or open
+      the WordPress page.
     </StatusCard>
   );
 }

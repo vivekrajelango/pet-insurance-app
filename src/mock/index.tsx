@@ -8,11 +8,12 @@ import type { AppConfig } from '../config';
 import type { Services } from '../services';
 import { App, Providers } from '../App';
 import { LoggedOut } from '../components/StatusScreens';
+import { ServiceUnavailable } from '../components/ServiceUnavailable';
 import { createMockEndpoints } from './api';
 import { OWNER } from './data';
 import { MockCheckoutHost, mockCheckout } from './MockCheckout';
 import { ProfileMenu } from './ProfileMenu';
-import { readScenario, type Scenario } from './scenario';
+import { readScenario, switchScenario, type Scenario } from './scenario';
 
 const config: AppConfig = {
   apiBase: 'mock://',
@@ -52,6 +53,14 @@ export function mockApp(container: HTMLElement): ReactNode {
     </>
   );
 
+  if (scenario === 'unavailable') {
+    return (
+      <Providers container={container}>
+        <ServiceUnavailable onRetry={() => switchScenario('default')} contactUrl={config.contactUrl} reference="DEMO" />
+        {devTools}
+      </Providers>
+    );
+  }
   if (scenario === 'loggedOut') {
     return (
       <Providers container={container}>
@@ -60,7 +69,5 @@ export function mockApp(container: HTMLElement): ReactNode {
       </Providers>
     );
   }
-  return (
-    <App config={config} services={createMockServices(scenario)} container={container} devTools={devTools} />
-  );
+  return <App config={config} services={createMockServices(scenario)} container={container} devTools={devTools} />;
 }

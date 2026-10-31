@@ -264,6 +264,22 @@
   text-decoration: underline;
 }
 
+/* ------------------------------------------------------------ tablet */
+
+/* Keep the three plans on one row instead of wrapping one card onto its own line */
+@media (min-width: 641px) and (max-width: 860px) {
+  .plans {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .planCard {
+    padding: 16px;
+  }
+  .selected {
+    padding: 15px;
+  }
+}
+
 /* ------------------------------------------------------------ phone */
 
 @media (max-width: 640px) {

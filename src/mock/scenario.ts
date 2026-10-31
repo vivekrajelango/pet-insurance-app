@@ -7,6 +7,7 @@ export const SCENARIOS = {
   sessionEnded: 'Session ends on the Plan step',
   loggedOut: 'Logged out visitor',
   paymentPending: 'Payment stays “confirming”',
+  unavailable: 'Service unavailable page',
 } as const;
 
 export type Scenario = keyof typeof SCENARIOS;

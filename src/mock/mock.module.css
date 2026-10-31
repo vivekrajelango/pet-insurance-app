@@ -20,12 +20,14 @@
 }
 
 .avatar:global(.ant-avatar) {
-  background: var(--pzi-red);
+  /* Fallbacks: the popover renders outside .pzi-app, where the --pzi-* tokens aren't defined */
+  background: var(--pzi-red, #c8102e);
+  flex-shrink: 0;
   font-weight: 700;
 }
 
 .profile {
-  width: 240px;
+  width: 264px;
 }
 
 .profileHead {
@@ -33,7 +35,7 @@
   align-items: center;
   gap: 12px;
   padding: 4px 4px 12px;
-  border-bottom: 1px solid var(--pzi-border);
+  border-bottom: 1px solid var(--pzi-border, #e6e3ec);
 }
 
 .profileName {
@@ -41,7 +43,7 @@
 }
 
 .profileEmail {
-  color: var(--pzi-muted);
+  color: var(--pzi-muted, #5a5866);
   font-size: 13px;
   word-break: break-all;
 }

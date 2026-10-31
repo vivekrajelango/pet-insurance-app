@@ -7,6 +7,7 @@ import { readConfig } from './config';
 import { createServices } from './services';
 import { App, Providers } from './App';
 import { NotConfigured } from './components/StatusScreens';
+import { ServiceUnavailable } from './components/ServiceUnavailable';
 
 /**
  * Entry point. The WordPress shortcode renders <div id="petzadore-insurance-root">
@@ -37,7 +38,17 @@ async function renderApp(container: HTMLElement): Promise<ReactNode> {
 
 const container = document.getElementById(ROOT_ID);
 if (container) {
-  renderApp(container).then((app) => createRoot(container).render(<StrictMode>{app}</StrictMode>));
+  // A failed start (e.g. a chunk that won't load) shows the fallback page, not a blank screen.
+  renderApp(container)
+    .catch((error: unknown) => {
+      console.error('[Petzadore Insurance]', error);
+      return (
+        <Providers container={container}>
+          <ServiceUnavailable reference="LOAD_FAILED" />
+        </Providers>
+      );
+    })
+    .then((app) => createRoot(container).render(<StrictMode>{app}</StrictMode>));
 } else {
   console.warn(`[Petzadore Insurance] #${ROOT_ID} not found on this page`);
 }

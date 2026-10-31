@@ -1,5 +1,5 @@
 import { Component, useEffect, useState, type ReactNode } from 'react';
-import { ConfigProvider, App as AntApp, Button } from 'antd';
+import { ConfigProvider, App as AntApp } from 'antd';
 import { StyleProvider } from '@ant-design/cssinjs';
 import enGB from 'antd/locale/en_GB';
 import 'dayjs/locale/en-gb';
@@ -7,7 +7,8 @@ import type { AppConfig } from './config';
 import type { Services } from './services';
 import { AppProvider, useApp } from './state/AppContext';
 import { theme } from './theme';
-import { SessionEnded, StatusCard } from './components/StatusScreens';
+import { SessionEnded } from './components/StatusScreens';
+import { ServiceUnavailable } from './components/ServiceUnavailable';
 import { PetSelectStep } from './steps/PetSelectStep';
 import { AddPetStep } from './steps/AddPetStep';
 import { PlanStep } from './steps/PlanStep';
@@ -52,7 +53,7 @@ export function App({
 
   return (
     <Providers container={container}>
-      <ErrorBoundary>
+      <ErrorBoundary contactUrl={config.contactUrl}>
         {sessionEnded ? (
           <SessionEnded loginUrl={config.loginUrl} />
         ) : (
@@ -86,7 +87,7 @@ function CurrentStep() {
   }
 }
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+class ErrorBoundary extends Component<{ children: ReactNode; contactUrl?: string }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -99,17 +100,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean
 
   render() {
     if (!this.state.failed) return this.props.children;
-    return (
-      <StatusCard
-        title="Something went wrong"
-        actions={
-          <Button type="primary" shape="round" size="large" onClick={() => window.location.reload()} block>
-            Reload
-          </Button>
-        }
-      >
-        Please reload the page. Your progress is saved.
-      </StatusCard>
-    );
+    return <ServiceUnavailable contactUrl={this.props.contactUrl} reference="APP_ERROR" />;
   }
 }
