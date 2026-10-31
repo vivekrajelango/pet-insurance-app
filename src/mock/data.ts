@@ -6,8 +6,8 @@ import type { Breed, CoverageRow, Owner, Pet } from '../api/types';
 
 export const OWNER: Owner = {
   id: 31,
-  name: 'Anjana Sri',
-  email: 'anjana@example.com',
+  name: 'Vivek Raj',
+  email: 'vivek.raj@example.com',
   phone: '7299902447',
   city: 'Chennai',
   postalCode: '600030',

@@ -1,4 +1,4 @@
-/** Mock scenarios, picked with ?mock=<key> (or the "Mock" panel). */
+/** Mock scenarios, picked with ?mock=<key>. */
 export const SCENARIOS = {
   default: 'Happy path (4 pets, payment succeeds)',
   noPets: 'No pets on the profile → Add pet',

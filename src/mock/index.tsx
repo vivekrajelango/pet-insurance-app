@@ -1,6 +1,6 @@
 /**
  * Mock mode (VITE_MOCK_API=true): every screen on sample data, no backend,
- * no Razorpay. Pick a scenario with ?mock=<key> or the "Mock" button.
+ * no Razorpay. Test a scenario with ?mock=<key> (see scenario.ts).
  */
 import type { ReactNode } from 'react';
 import { ApiError } from '../api/client';
@@ -11,7 +11,7 @@ import { LoggedOut } from '../components/StatusScreens';
 import { createMockEndpoints } from './api';
 import { OWNER } from './data';
 import { MockCheckoutHost, mockCheckout } from './MockCheckout';
-import { ScenarioPanel } from './ScenarioPanel';
+import { ProfileMenu } from './ProfileMenu';
 import { readScenario, type Scenario } from './scenario';
 
 const config: AppConfig = {
@@ -48,7 +48,7 @@ export function mockApp(container: HTMLElement): ReactNode {
   const devTools = (
     <>
       <MockCheckoutHost />
-      <ScenarioPanel current={scenario} />
+      <ProfileMenu loggedOut={scenario === 'loggedOut'} />
     </>
   );
 

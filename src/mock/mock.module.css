@@ -1,22 +1,54 @@
-.trigger:global(.ant-btn) {
+.trigger:global(.ant-btn),
+.avatarTrigger {
   position: fixed;
-  right: 12px;
-  top: 12px;
+  right: 16px;
+  top: 16px;
   z-index: 50;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
 }
 
-.panel {
+.avatarTrigger {
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.avatarTrigger:focus-visible {
+  outline: 2px solid var(--pzi-red);
+  outline-offset: 2px;
+}
+
+.avatar:global(.ant-avatar) {
+  background: var(--pzi-red);
+  font-weight: 700;
+}
+
+.profile {
+  width: 240px;
+}
+
+.profileHead {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 12px;
-  max-width: 300px;
+  padding: 4px 4px 12px;
+  border-bottom: 1px solid var(--pzi-border);
 }
 
-.options:global(.ant-radio-group) {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.profileName {
+  font-weight: 700;
+}
+
+.profileEmail {
+  color: var(--pzi-muted);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.profileMenu:global(.ant-menu) {
+  border-inline-end: 0 !important;
+  margin-top: 4px;
 }
 
 .checkout {

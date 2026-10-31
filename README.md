@@ -18,9 +18,10 @@ Copy-Item .env.example .env.local
 **Mock mode** (UI only, no backend, no token). Set `VITE_MOCK_API=true` in `.env.local`, then
 `npm run dev` and open http://localhost:5173. Every screen runs on sample data from `src/mock/`:
 4 pets (one cat, and Rocky, who is too old), the 3 plans from the backend catalogue, and a fake
-Razorpay window where you choose to pay, fail or cancel. The **Mock** button (top right) switches
-scenario: no pets, all 5 slots used, can't load pets, session ended, logged out, payment stuck on
-"confirming". Or open `?mock=<scenario>` directly. Mock code is a separate chunk, only loaded in this mode.
+Razorpay window where you choose to pay, fail or cancel. The profile button (top right) shows a
+sample account menu with "Reset demo data" and "Log out". Other cases (no pets, all 5 slots used,
+can't load pets, session ended, payment stuck on "confirming") open with `?mock=<scenario>`; the
+keys are in `src/mock/scenario.ts`. Mock code is a separate chunk, only loaded in this mode.
 
 **Standalone with the backend.** Set `VITE_MOCK_API=false` (or remove it). The app runs at http://localhost:5173 against your local backend.
 
