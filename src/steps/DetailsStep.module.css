@@ -1,0 +1,118 @@
+.cardHead,
+.insurerHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.edit:global(.ant-btn) {
+  font-weight: 700;
+}
+
+.contact {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 20px;
+}
+
+.contact dt {
+  font-size: 13px;
+  color: var(--pzi-muted);
+}
+
+.contact dd {
+  margin: 0;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.missing {
+  color: #8a4600;
+}
+
+.hint {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--pzi-muted);
+}
+
+.contactForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+}
+
+.contactActions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* "Details for the insurer" — waiting on the field list */
+.insurer {
+  padding: 22px 24px;
+  border: 2px dashed #8f8c99;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.tbc {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pzi-muted);
+}
+
+.placeholders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.placeholder {
+  padding: 12px 14px;
+  border: 1px dashed #c4c1cc;
+  border-radius: 10px;
+  color: var(--pzi-muted);
+}
+
+.placeholderWide {
+  grid-column: 1 / -1;
+  min-height: 80px;
+}
+
+@media (max-width: 640px) {
+  .contact {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .contact > div {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .contact dt {
+    font-size: 15px;
+  }
+  .contactForm,
+  .placeholders {
+    grid-template-columns: 1fr;
+  }
+  .insurer {
+    padding: 16px;
+  }
+  .placeholderWide {
+    min-height: 100px;
+  }
+}

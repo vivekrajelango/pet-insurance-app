@@ -1,0 +1,156 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card:global(.ant-card) {
+  border-radius: 20px;
+}
+
+.card :global(.ant-card-body) {
+  padding: 36px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.lead {
+  max-width: 470px;
+  color: var(--pzi-muted);
+  font-size: 16px;
+}
+
+.facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 20px;
+  padding: 16px 0;
+  border-block: 1px solid var(--pzi-border);
+}
+
+.facts dt {
+  font-size: 13px;
+  color: var(--pzi-muted);
+}
+
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  color: var(--pzi-red);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.nextTitle {
+  display: none;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.next {
+  counter-reset: step;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.next li {
+  counter-increment: step;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid var(--pzi-border);
+  border-radius: 16px;
+}
+
+.next li::before {
+  content: counter(step);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--pzi-red);
+}
+
+/* Phone: plain layout, numbered list, buttons stacked at the bottom */
+@media (max-width: 640px) {
+  .page {
+    padding: 32px 16px 24px;
+    gap: 16px;
+  }
+  .card:global(.ant-card) {
+    background: transparent;
+    border: 0;
+  }
+  .card :global(.ant-card-body) {
+    padding: 0;
+  }
+  .title {
+    font-size: 28px;
+  }
+  .facts {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 16px 20px;
+    border: 1px solid var(--pzi-border);
+    border-radius: 16px;
+    background: #fff;
+  }
+  .facts > div {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .facts dt {
+    font-size: 15px;
+  }
+  .nextTitle {
+    display: block;
+  }
+  .next {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .next li {
+    flex-direction: row;
+    gap: 14px;
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+  .next li::before {
+    font-size: 16px;
+  }
+  .actions {
+    flex-direction: column;
+    margin-top: 24px;
+  }
+}

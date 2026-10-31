@@ -1,0 +1,143 @@
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.wide {
+  width: 100%;
+}
+
+.form :global(.ant-form-item-label > label) {
+  font-weight: 700;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--pzi-muted);
+}
+
+.hint {
+  margin: -16px 0 16px;
+  font-size: 13px;
+  color: var(--pzi-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.infoText {
+  font-size: 14px;
+  color: var(--pzi-muted);
+}
+
+.slotNote {
+  font-size: 13px;
+  color: var(--pzi-muted);
+}
+
+/* Dog / Cat */
+.toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.toggleOn,
+.toggleOff {
+  height: 44px;
+  margin: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.toggleOn {
+  border: 2px solid var(--pzi-red);
+  background: var(--pzi-red-tint);
+  color: var(--pzi-red);
+  font-weight: 700;
+}
+
+.toggleOff {
+  border: 1px solid #c4c1cc;
+  background: #fff;
+  color: var(--pzi-ink);
+}
+
+.toggleOn:focus-visible,
+.toggleOff:focus-visible {
+  outline: 3px solid var(--pzi-red);
+  outline-offset: 2px;
+}
+
+/* Photo */
+.dropzone :global(.ant-upload-drag) {
+  background: #f7f6fa;
+  border-radius: 12px;
+}
+
+.dropzoneText {
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--pzi-muted);
+}
+
+.camera {
+  font-size: 22px;
+  color: var(--pzi-ink);
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.preview img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.photoError {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+  }
+  /* Name, type, vaccination fields: one per row; DOB + Age stay side by side */
+  .form > :global(.ant-form-item):nth-child(-n + 2),
+  .form > :global(.ant-form-item):nth-child(n + 6) {
+    grid-column: 1 / -1;
+  }
+  .dropzoneText {
+    min-height: 72px;
+    flex-direction: row;
+  }
+}

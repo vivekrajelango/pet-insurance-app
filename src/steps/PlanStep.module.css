@@ -1,0 +1,302 @@
+.inlineLink {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--pzi-red);
+  cursor: pointer;
+}
+
+.petChip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--pzi-muted);
+}
+
+.petChip strong {
+  color: var(--pzi-ink);
+}
+
+/* ------------------------------------------------------------ plan cards */
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.planCard {
+  order: var(--desktop-order, 0);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid var(--pzi-border);
+  border-radius: 16px;
+}
+
+.planCard:hover {
+  border-color: var(--pzi-red);
+}
+
+.planCard:focus-visible {
+  outline: 3px solid var(--pzi-red);
+  outline-offset: 2px;
+}
+
+.selected {
+  border: 2px solid var(--pzi-red);
+  padding: 21px;
+}
+
+.badgeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 26px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--pzi-red);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.radio {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #c4c1cc;
+}
+
+.radioOn {
+  border: 7px solid var(--pzi-red);
+}
+
+.nameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.planName {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.planMeta {
+  font-size: 14px;
+  color: var(--pzi-muted);
+}
+
+.highlights {
+  font-size: 15px;
+}
+
+.price {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.per {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--pzi-muted);
+}
+
+.tag {
+  align-self: flex-start;
+}
+
+.cardAction {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* ------------------------------------------------------------ compare */
+
+.compare {
+  background: #fff;
+  border: 1px solid var(--pzi-border);
+  border-radius: 16px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--pzi-border);
+  font-weight: 400;
+}
+
+.table thead th {
+  background: #f7f6fa;
+  font-weight: 700;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody th {
+  width: 38%;
+  position: sticky;
+  left: 0;
+  background: #fff;
+}
+
+.coverLabel {
+  display: block;
+}
+
+.coverSummary {
+  display: block;
+  font-size: 12px;
+  color: var(--pzi-muted);
+}
+
+.selectedCol {
+  background: #fff5f7;
+}
+
+.table thead th.selectedCol {
+  background: var(--pzi-red-tint);
+  color: var(--pzi-red);
+}
+
+.compareMobile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compareNote {
+  font-size: 13px;
+  color: var(--pzi-muted);
+  margin-bottom: 12px;
+}
+
+/* Phone "Compare plans": full-screen drawer */
+.compareDrawer .differs th,
+.compareDrawer .differs td:not(.selectedCol) {
+  background: var(--pzi-warn-bg);
+}
+
+.disclaimers {
+  font-size: 12px;
+  color: var(--pzi-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ------------------------------------------------------------ date of birth */
+
+.dob {
+  background: var(--pzi-warn-bg);
+  border: 1px solid var(--pzi-warn-border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+
+.dobText {
+  flex: 1 1 360px;
+}
+
+.dobHint {
+  color: var(--pzi-muted);
+}
+
+.dobControls {
+  display: flex;
+  gap: 12px;
+}
+
+.dobInput {
+  width: 180px;
+}
+
+.dobFoot {
+  flex: 1 1 100%;
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------ not eligible */
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f4f2f8;
+  color: var(--pzi-ink);
+}
+
+.talk {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------ phone */
+
+@media (max-width: 640px) {
+  .plans {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .planCard {
+    order: 0;
+    padding: 20px;
+    gap: 6px;
+  }
+  .selected {
+    padding: 19px;
+  }
+  .badgeRow {
+    min-height: 0;
+  }
+  /* No badge and not selected: nothing to show on a phone */
+  .badgeRowBare {
+    display: none;
+  }
+  .price {
+    font-size: 22px;
+  }
+  .dob {
+    padding: 16px;
+  }
+  .dobControls {
+    flex: 1 1 100%;
+  }
+  .dobInput {
+    flex: 1;
+    width: auto;
+  }
+}

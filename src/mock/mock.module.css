@@ -1,0 +1,48 @@
+.trigger:global(.ant-btn) {
+  position: fixed;
+  right: 12px;
+  top: 12px;
+  z-index: 50;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 300px;
+}
+
+.options:global(.ant-radio-group) {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.checkout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.checkoutMerchant {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.checkoutDescription,
+.checkoutHint {
+  color: var(--pzi-muted);
+  font-size: 13px;
+}
+
+.checkoutAmount {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 4px 0;
+}
+
+.checkoutHint {
+  margin-bottom: 6px;
+}

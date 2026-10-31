@@ -1,0 +1,23 @@
+<!doctype html>
+<!--
+  Standalone development page only (npm run dev → http://localhost:5173).
+  In production WordPress renders the page, the mount point and window.PetzadoreInsurance.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Petzadore Insurance — dev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" />
+    <style>
+      body { margin: 0; background: #f4f2f8; }
+      .dev-site-header { height: 72px; background: #fff; border-bottom: 1px solid #eceaf1; display: flex; align-items: center; padding: 0 24px; font: 700 22px Ubuntu, sans-serif; color: #c8102e; }
+    </style>
+  </head>
+  <body>
+    <div class="dev-site-header">PetzAdore (dev)</div>
+    <div id="petzadore-insurance-root" class="pzi-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

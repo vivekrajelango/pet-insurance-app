@@ -1,0 +1,45 @@
+.card :global(.ant-card-body) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.heading {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.pet {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.petText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.muted {
+  color: var(--pzi-muted);
+  font-size: 13px;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--pzi-border);
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tag {
+  align-self: flex-start;
+}

@@ -1,0 +1,90 @@
+/*
+ * Global styles for the app, all scoped under .pzi-app so nothing leaks into the
+ * WordPress page, plus a small reset so the WordPress theme's element styles
+ * (h1, p, ul, button, input, label…) don't leak into the app.
+ * Ant Design components style themselves; this only covers plain elements.
+ */
+.pzi-app {
+  --pzi-red: #c8102e;
+  --pzi-red-dark: #9e0b24;
+  --pzi-red-tint: #fce8ec;
+  --pzi-page: #f4f2f8;
+  --pzi-ink: #1f1d24;
+  --pzi-muted: #5a5866;
+  --pzi-border: #e6e3ec;
+  --pzi-warn-bg: #fff6ec;
+  --pzi-warn-border: #e8b27a;
+
+  box-sizing: border-box;
+  font-family:
+    Ubuntu,
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--pzi-ink);
+  text-align: left;
+}
+
+.pzi-app *,
+.pzi-app *::before,
+.pzi-app *::after {
+  box-sizing: inherit;
+}
+
+.pzi-app :where(h1, h2, h3, h4, p, ul, ol, figure) {
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.pzi-app :where(h1, h2, h3, h4) {
+  color: inherit;
+  line-height: 1.25;
+}
+
+.pzi-app :where(ul, ol) {
+  list-style: none;
+}
+
+.pzi-app :where(img) {
+  max-width: 100%;
+  display: block;
+}
+
+.pzi-app :where(a) {
+  color: var(--pzi-red);
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.pzi-app :where(a:hover) {
+  color: var(--pzi-red-dark);
+}
+
+/* Visually hidden, still read by screen readers */
+.pzi-app .pzi-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Show an element only on phones / only on wider screens (same breakpoint as the components) */
+@media (max-width: 640px) {
+  .pzi-app .pzi-desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .pzi-app .pzi-mobile-only {
+    display: none !important;
+  }
+}
