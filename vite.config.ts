@@ -22,6 +22,10 @@ const pluginAppDir = fileURLToPath(new URL('../wp-plugin/petzadore-insurance/app
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const standalone = mode === 'standalone';
+  // Standalone runs on sample data unless VITE_MOCK_API is clearly "false". Tolerates
+  // quotes, spaces and capitals, which are easy to type into hosting dashboards.
+  const standaloneMock =
+    (env.VITE_MOCK_API ?? '').trim().replace(/^["']|["']$/g, '').toLowerCase() === 'false' ? 'false' : 'true';
   const port = Number(env.VITE_DEV_PORT || 5173);
   // WordPress sites allowed to load modules from the dev server.
   const wpOrigins = (env.VITE_WP_ORIGINS || 'https://staging.petzadore.com')
@@ -34,7 +38,7 @@ export default defineConfig(({ mode }) => {
     // Built files are served from .../plugins/petzadore-insurance/app/, so keep URLs relative.
     base: mode === 'production' ? './' : '/',
     define: standalone
-      ? { 'import.meta.env.VITE_MOCK_API': JSON.stringify(env.VITE_MOCK_API ?? 'true') }
+      ? { 'import.meta.env.VITE_MOCK_API': JSON.stringify(standaloneMock) }
       : undefined,
     server: {
       port,
