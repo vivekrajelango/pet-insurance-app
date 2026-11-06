@@ -12,6 +12,7 @@ import type {
   MatchResult,
   NewPetInput,
   Order,
+  Owner,
   Pet,
   Plan,
   PlanCondition,
@@ -19,6 +20,7 @@ import type {
 import {
   BREEDS,
   DISCLAIMERS,
+  FORM_OPTIONS,
   EXTRA_PET,
   GIANT_BREEDS,
   GST_PERCENT,
@@ -41,7 +43,15 @@ interface MockOrder extends Order {
 interface Store {
   pets: Pet[];
   orders: Record<string, MockOrder>;
+  /** Contact details saved with PATCH /v1/me/profile (missing in stores saved before it existed) */
+  owner?: Owner;
 }
+
+/** Same rule as the backend: Indian mobile, +91 optional. */
+const INDIAN_MOBILE = /^(\+?91[\s-]?|0)?[6-9](?:[\s-]?[0-9]){9}$/;
+
+/** Like staging: the profile stores dates as "YYYY-MM-DD 00:00:00". */
+const profileDate = (date?: string) => (date ? `${date} 00:00:00` : null);
 
 function initialPets(scenario: Scenario): Pet[] {
   if (scenario === 'noPets') return [];
@@ -152,18 +162,7 @@ function matchPlans(pet: Pet, dateOfBirth?: string): MatchResult {
             },
           ]
         : [];
-    const q = quote(plan);
-    plans.push({
-      id: plan.id,
-      code: plan.code,
-      name: plan.name,
-      tagline: plan.tagline,
-      sumInsured: plan.sumInsured,
-      recommended: plan.recommended,
-      premium: { ...q, gstPercent: GST_PERCENT, currency: 'INR', isPlaceholder: true },
-      coverage: coverageRows(plan),
-      conditions,
-    });
+    plans.push(planView(plan, conditions));
   }
 
   return {
@@ -179,6 +178,21 @@ function matchPlans(pet: Pet, dateOfBirth?: string): MatchResult {
     },
     plans,
     ineligiblePlans,
+  };
+}
+
+/** A plan as the backend shows it (premium, coverage rows), with any conditions for the pet. */
+function planView(plan: MockPlan, conditions: PlanCondition[] = []): Plan {
+  return {
+    id: plan.id,
+    code: plan.code,
+    name: plan.name,
+    tagline: plan.tagline,
+    sumInsured: plan.sumInsured,
+    recommended: plan.recommended,
+    premium: { ...quote(plan), gstPercent: GST_PERCENT, currency: 'INR', isPlaceholder: true },
+    coverage: coverageRows(plan),
+    conditions,
   };
 }
 
@@ -208,6 +222,29 @@ export function createMockEndpoints(scenario: Scenario, endSession: () => never)
   const publicOrder = ({ pollsUntilPaid: _, ...order }: MockOrder): Order => order;
 
   return {
+    async getMe(signal) {
+      await wait(200, signal);
+      return { user: { id: OWNER.id, name: OWNER.name, email: OWNER.email } };
+    },
+
+    async getMyProfile(signal) {
+      await wait(300, signal);
+      return { owner: store.owner ?? OWNER };
+    },
+
+    async updateMyProfile(values) {
+      await wait(500);
+      if (values.phone != null && !INDIAN_MOBILE.test(values.phone)) {
+        throw new ApiError(400, 'VALIDATION_ERROR', `body/phone must match pattern "${INDIAN_MOBILE.source}"`);
+      }
+      if (values.postalCode != null && !/^[0-9]{6}$/.test(values.postalCode)) {
+        throw new ApiError(400, 'VALIDATION_ERROR', 'body/postalCode must match pattern "^[0-9]{6}$"');
+      }
+      store.owner = { ...(store.owner ?? OWNER), ...values };
+      save();
+      return { owner: store.owner, skipped: [] };
+    },
+
     async getPets(signal) {
       await wait(500, signal);
       if (scenario === 'petsError') {
@@ -221,8 +258,9 @@ export function createMockEndpoints(scenario: Scenario, endSession: () => never)
       const used = new Set(store.pets.map((p) => p.slot));
       const slot = [1, 2, 3, 4, 5].find((s) => !used.has(s));
       if (!slot || store.pets.length >= MAX_SLOTS) {
-        throw new ApiError(409, 'SLOTS_FULL', 'All 5 pet slots on your profile are in use.');
+        throw new ApiError(409, 'PET_SLOTS_FULL', 'All 5 pet slots on your profile are in use.');
       }
+      // Like staging: the profile has no "Date of birth" field, so it is skipped and only Age is set.
       const pet: Pet = {
         ...PETS[0],
         id: Math.max(100, ...store.pets.map((p) => p.id)) + 1,
@@ -230,23 +268,63 @@ export function createMockEndpoints(scenario: Scenario, endSession: () => never)
         name: input.name,
         species: input.species,
         breed: input.breed,
-        dateOfBirth: input.dateOfBirth ?? null,
+        dateOfBirth: null,
         ageYears: input.dateOfBirth ? dayjs().diff(input.dateOfBirth, 'year') : (input.ageYears ?? null),
         gender: null,
         vaccinationStatus: input.vaccinationStatus ?? null,
-        vaccinationExpiry: input.vaccinationExpiry ?? null,
+        vaccinationExpiry: profileDate(input.vaccinationExpiry),
         microchipNumber: input.microchipNumber ?? null,
-        photo: input.photo ?? null,
-        owner: OWNER,
+        photo: null,
       };
       store.pets = [...store.pets, pet].sort((a, b) => a.slot - b.slot);
       save();
-      return { pet };
+      return { pet, skipped: input.dateOfBirth ? ['dateOfBirth'] : [] };
     },
 
-    async getBreeds(signal) {
+    async updatePet(petId, values) {
+      await wait(500);
+      const pet = findPet(petId);
+      const { dateOfBirth, vaccinationExpiry, ...rest } = values;
+      Object.assign(pet, rest);
+      if (vaccinationExpiry) pet.vaccinationExpiry = profileDate(vaccinationExpiry);
+      if (dateOfBirth) pet.ageYears = dayjs().diff(dateOfBirth, 'year');
+      save();
+      return { pet, skipped: dateOfBirth ? ['dateOfBirth'] : [] };
+    },
+
+    async getPet(petId, signal) {
+      await wait(300, signal);
+      return { pet: findPet(petId) };
+    },
+
+    async getPetFormOptions(signal) {
       await wait(200, signal);
-      return { breeds: BREEDS };
+      return FORM_OPTIONS;
+    },
+
+    async getBreeds({ species, q, limit = 1000 } = {}, signal) {
+      await wait(200, signal);
+      const text = q?.trim().toLowerCase() ?? '';
+      const breeds = BREEDS.filter((b) => !species || b.species.some((s) => s.toLowerCase() === species))
+        .filter((b) => b.name.toLowerCase().includes(text))
+        // Names starting with the search text first, like the backend
+        .sort((a, b) => Number(!a.name.toLowerCase().startsWith(text)) - Number(!b.name.toLowerCase().startsWith(text)))
+        .slice(0, limit);
+      return { breeds };
+    },
+
+    async getPlans(signal) {
+      await wait(300, signal);
+      return { plans: PLANS.map((plan) => planView(plan)), disclaimers: DISCLAIMERS };
+    },
+
+    async listOrders(status, signal) {
+      await wait(300, signal);
+      const orders = Object.values(store.orders)
+        .filter((o) => !status || o.status === status)
+        .reverse()
+        .map(publicOrder);
+      return { orders };
     },
 
     async matchPlans(petId, dateOfBirth, signal) {

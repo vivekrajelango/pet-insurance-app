@@ -21,7 +21,7 @@ export class ApiError extends Error {
   }
 }
 
-type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiClient {
   request<T>(method: Method, path: string, body?: unknown, init?: { signal?: AbortSignal }): Promise<T>;

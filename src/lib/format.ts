@@ -1,4 +1,4 @@
-import type { Owner, Pet } from '../api/types';
+import type { Owner, Pet, PetOwner } from '../api/types';
 import type { ContactDetails } from '../state/wizard';
 
 const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
@@ -35,12 +35,17 @@ export const MAX_PETS = 5;
 export const isCat = (pet: Pick<Pet, 'species'>) => pet.species?.toLowerCase() === 'cat';
 
 /** Policy holder contact: the member's edits on Step 3, else the profile. */
-export function contactOf(owner: Owner, edited: ContactDetails | null, fallbackName: string): ContactDetails {
+export function contactOf(
+  owner: Owner | PetOwner,
+  edited: ContactDetails | null,
+  fallbackName: string,
+): ContactDetails {
   const c = edited ?? owner;
   return {
     name: c.name || fallbackName,
     phone: c.phone,
-    email: c.email,
+    // The owner embedded in a pet has no email
+    email: (c as Partial<Owner>).email ?? null,
     city: c.city,
     postalCode: c.postalCode,
   };

@@ -38,20 +38,38 @@ export interface Pet {
   preExistingConditions: string | null;
   isCurrentlyInsured: boolean | null;
   vaccinationStatus: string | null;
+  /** As stored on the profile, e.g. "2027-09-17 00:00:00" */
   vaccinationExpiry: string | null;
+  /** As entered on the profile; not always 15 digits */
   microchipNumber: string | null;
+  /** Image URL */
   photo: string | null;
   city: string | null;
-  owner: Owner;
+  owner: PetOwner;
 }
+
+/** The owner as embedded in each pet: no id or email (GET /v1/me/profile has those). */
+export type PetOwner = Pick<Owner, 'name' | 'phone' | 'city' | 'postalCode'>;
+
+/**
+ * Reply to POST /v1/pets and PATCH /v1/pets/:id: the pet as read back from the profile,
+ * plus fields that were sent but the profile has no field for yet (e.g. "dateOfBirth").
+ */
+export interface PetWriteResponse {
+  pet: Pet;
+  skipped: string[];
+}
+
+/** PATCH /v1/me/profile: at least one field. Phone: Indian mobile, +91 optional. */
+export type OwnerUpdate = Partial<Pick<Owner, 'phone' | 'city' | 'postalCode'>>;
 
 export interface PetsResponse {
   pets: Pet[];
 }
 
 /**
- * Body for saving a new pet to the member's profile.
- * NOT BUILT YET: needs POST /v1/pets in the backend and a write route in the plugin.
+ * Body for POST /v1/pets. Required: name, species, breed, and dateOfBirth or ageYears.
+ * There is no photo field yet.
  */
 export interface NewPetInput {
   name: string;
@@ -61,15 +79,52 @@ export interface NewPetInput {
   ageYears?: number;
   vaccinationStatus?: string;
   vaccinationExpiry?: string; // YYYY-MM-DD
+  /** 15 digits */
   microchipNumber?: string;
-  /** Data URL for now; the final upload format depends on the plugin write route. */
-  photo?: string;
 }
 
-/** One entry of the Petzadore Breed Library. NOT BUILT YET: GET /v1/breeds. */
+/** One entry of the Petzadore Breed Library (GET /v1/breeds). */
 export interface Breed {
+  id: number;
   name: string;
-  species: 'Dog' | 'Cat';
+  /** As in the library, e.g. ['Dog'] — a breed can list more than one */
+  species: string[];
+}
+
+/** GET /v1/breeds query */
+export interface BreedQuery {
+  species?: 'dog' | 'cat';
+  /** Search text; names starting with it come first */
+  q?: string;
+  /** 1–1000, default 1000 */
+  limit?: number;
+}
+
+/** Type and choices of one BuddyPress profile field (from the plugin). */
+export interface ProfileFieldInfo {
+  /** Label on the profile, e.g. "Vaccination status" */
+  fieldName?: string;
+  /** e.g. textbox, radio, number, datebox, telephone */
+  type?: string;
+  options?: string[] | null;
+}
+
+/** GET /v1/pets/form-options: choices for the Add pet form, read from the profile fields. */
+export interface PetFormOptions {
+  petSlots: number;
+  species: string[];
+  /** null when the profile has no "Vaccination status" choices */
+  vaccinationStatus: string[] | null;
+  /** Which pet fields this site's profile has, keyed like the Pet shape */
+  petFields: Record<string, ProfileFieldInfo>;
+  ownerFields: Record<string, ProfileFieldInfo>;
+}
+
+/** GET /v1/me: the member from the session token. */
+export interface CurrentUser {
+  id: number;
+  name: string | null;
+  email: string | null;
 }
 
 // ------------------------------------------------------------------ plans
@@ -138,6 +193,12 @@ export interface MatchResult {
   plans: Plan[];
   ineligiblePlans: IneligiblePlan[];
   disclaimers: string[];
+}
+
+/** GET /v1/plans: every plan, without a pet's eligibility. */
+export interface PlanCatalogue {
+  plans: Plan[];
+  disclaimers: MatchResult['disclaimers'];
 }
 
 // ------------------------------------------------------------------ orders

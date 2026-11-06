@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Select, Upload } from 'antd';
-import { CameraOutlined, SearchOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Select } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { ApiError } from '../api/client';
@@ -23,35 +23,35 @@ interface FormValues {
   microchipNumber?: string;
 }
 
-// TODO: use the exact options of the WordPress "Vaccination status" profile field.
-const VACCINATION_OPTIONS = ['Vaccinated', 'Partially vaccinated', 'Not vaccinated'].map((v) => ({
-  value: v,
-  label: v,
-}));
+/** Used until GET /v1/pets/form-options answers, or if the profile field has no choices. */
+const FALLBACK_VACCINATION = ['Vaccinated', 'Partially vaccinated', 'Not vaccinated'];
 
 /** Always offered, whatever the Breed Library returns. */
 const MIXED_BREED = 'Indian / mixed breed';
 
 const DATE_FORMAT = 'DD/MM/YYYY';
-const MAX_PHOTO_MB = 5;
 
 /**
  * Step 1b — add a pet; it is saved to the member's Petzadore profile
  * (first empty BuddyPress pet slot) and then used for the quote.
  * `firstPet`: the profile has no pets, so there is nothing to go back to.
  *
- * Depends on POST /v1/pets + a plugin write route and GET /v1/breeds, which are
- * not built yet (mock mode has them). Without the Breed Library, breed is free text.
+ * Choices come from GET /v1/pets/form-options and the Breed Library (GET /v1/breeds).
+ * Without the Breed Library, breed is free text.
  */
 export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
   const { api, dispatch } = useApp();
   const [form] = Form.useForm<FormValues>();
   const species = Form.useWatch('species', form) ?? 'Dog';
-  const [photo, setPhoto] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { pets, loading: petsLoading } = usePets();
-  const breeds = useAsync((signal) => api.getBreeds(signal).then((r) => r.breeds), 'breeds');
+  const breeds = useAsync((signal) => api.getBreeds({}, signal).then((r) => r.breeds), 'breeds');
+  const formOptions = useAsync((signal) => api.getPetFormOptions(signal), 'pet-form-options');
+  const vaccinationOptions = (formOptions.data?.vaccinationStatus ?? FALLBACK_VACCINATION).map((v) => ({
+    value: v,
+    label: v,
+  }));
 
   const used = new Set(pets.map((p) => p.slot));
   const slot = petsLoading
@@ -59,7 +59,9 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
     : Array.from({ length: MAX_PETS }, (_, i) => i + 1).find((s) => !used.has(s));
   const breedOptions = [
     MIXED_BREED,
-    ...(breeds.data ?? []).filter((b) => b.species === species && b.name !== MIXED_BREED).map((b) => b.name),
+    ...(breeds.data ?? [])
+      .filter((b) => b.name !== MIXED_BREED && b.species.some((s) => s.toLowerCase() === species.toLowerCase()))
+      .map((b) => b.name),
   ].map((name) => ({ value: name, label: name }));
 
   async function onFinish(values: FormValues) {
@@ -74,18 +76,16 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
       vaccinationStatus: values.vaccinationStatus,
       vaccinationExpiry: values.vaccinationExpiry?.format('YYYY-MM-DD'),
       microchipNumber: values.microchipNumber?.trim() || undefined,
-      photo: photo ?? undefined,
     };
     try {
-      const { pet } = await api.createPet(input);
-      dispatch({ type: 'petSaved', petId: pet.id });
+      const { pet, skipped } = await api.createPet(input);
+      // The profile may have no "Date of birth" field yet (only Age): keep the exact date
+      // for plan matching anyway.
+      const dateOfBirth = skipped.includes('dateOfBirth') ? (input.dateOfBirth ?? null) : null;
+      dispatch({ type: 'petSaved', petId: pet.id, dateOfBirth });
     } catch (err) {
       if (err instanceof ApiError && err.isSessionEnded) return;
-      setError(
-        err instanceof ApiError && err.status === 404
-          ? 'Saving new pets isn’t available yet. Please add the pet on your Petzadore profile for now.'
-          : (err as Error).message,
-      );
+      setError(saveErrorMessage(err));
       setSaving(false);
     }
   }
@@ -110,12 +110,6 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
       }
       aside={
         <>
-          <Card>
-            <div className={styles.cardTitle}>
-              Photo <span className={styles.optional}>(optional)</span>
-            </div>
-            <PhotoUpload photo={photo} onChange={setPhoto} />
-          </Card>
           <Card className="pzi-desktop-only">
             <div className={styles.cardTitle}>Saved to your profile</div>
             <p className={styles.infoText}>
@@ -209,7 +203,7 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
             label="Vaccination status"
             rules={[{ required: true, message: 'Choose the vaccination status' }]}
           >
-            <Select placeholder="Select" options={VACCINATION_OPTIONS} />
+            <Select placeholder="Select" options={vaccinationOptions} loading={formOptions.loading} />
           </Form.Item>
 
           <Form.Item
@@ -255,6 +249,17 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
   );
 }
 
+function saveErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.code === 'PET_SLOTS_FULL') {
+      return `All ${MAX_PETS} pet slots on your profile are in use. Remove a pet on your Petzadore profile to add another.`;
+    }
+    // The backend's validation messages are technical (e.g. "body/microchipNumber must match…").
+    if (err.code === 'VALIDATION_ERROR') return 'Some details weren’t accepted. Please check the form and try again.';
+  }
+  return (err as Error).message;
+}
+
 /** Dog / Cat buttons (a Form.Item control: gets value + onChange). */
 function TypeToggle({
   value,
@@ -278,55 +283,5 @@ function TypeToggle({
         </button>
       ))}
     </div>
-  );
-}
-
-/** Picks an image and keeps it as a data URL (no upload until the write route exists). */
-function PhotoUpload({
-  photo,
-  onChange,
-}: {
-  photo: string | null;
-  onChange: (photo: string | null) => void;
-}) {
-  const [error, setError] = useState<string | null>(null);
-
-  if (photo) {
-    return (
-      <div className={styles.preview}>
-        <img src={photo} alt="Your pet" />
-        <Button type="link" onClick={() => onChange(null)}>
-          Remove photo
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <Upload.Dragger
-        accept="image/*"
-        showUploadList={false}
-        className={styles.dropzone}
-        beforeUpload={(file) => {
-          if (file.size > MAX_PHOTO_MB * 1024 * 1024) {
-            setError(`Choose a photo under ${MAX_PHOTO_MB} MB.`);
-            return Upload.LIST_IGNORE;
-          }
-          setError(null);
-          const reader = new FileReader();
-          reader.onload = () => onChange(reader.result as string);
-          reader.readAsDataURL(file);
-          return Upload.LIST_IGNORE;
-        }}
-      >
-        <span className={styles.dropzoneText}>
-          <CameraOutlined className={styles.camera} aria-hidden />
-          <span className="pzi-mobile-only">Upload a photo</span>
-          <span className="pzi-desktop-only">Drop a photo or click to upload</span>
-        </span>
-      </Upload.Dragger>
-      {error && <Alert type="error" showIcon title={error} className={styles.photoError} />}
-    </>
   );
 }

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Button, Card, Form, Input } from 'antd';
+import { Alert, Button, Card, Form, Input } from 'antd';
+import { ApiError } from '../api/client';
+import type { OwnerUpdate } from '../api/types';
 import { AppShell } from '../components/AppShell';
 import { OrderSummary } from '../components/OrderSummary';
 import { Redirect } from '../components/Redirect';
@@ -21,17 +23,17 @@ import styles from './DetailsStep.module.css';
  * pre-existing conditions, already insured elsewhere.
  */
 export function DetailsStep() {
-  const { config, state, dispatch } = useApp();
+  const { api, config, state, dispatch } = useApp();
   const quote = useQuote();
   const [form] = Form.useForm<DetailsAnswers>();
   const [editingContact, setEditingContact] = useState(false);
 
   if (quote.loading) return <Loading />;
   if (quote.error) return <ErrorPanel error={quote.error} onRetry={quote.reload} />;
-  const { pet, plan } = quote.data!;
+  const { pet, plan, owner } = quote.data!;
   // Pet removed from the profile, or the plan no longer fits: go back and choose again.
   if (!pet || !plan) return <Redirect to={pet ? 'plan' : 'pet'} />;
-  const contact = contactOf(pet.owner, state.contact, config.user.name);
+  const contact = contactOf(owner ?? pet.owner, state.contact, config.user.name);
 
   const reviewButton = (
     <Button
@@ -81,7 +83,10 @@ export function DetailsStep() {
           <ContactForm
             initial={contact}
             onCancel={() => setEditingContact(false)}
-            onSave={(c) => {
+            onSave={async (c) => {
+              // Phone, city and PIN code go to the profile; name and email are for this policy only.
+              const changes = profileChanges(contact, c);
+              if (Object.keys(changes).length) await api.updateMyProfile(changes);
               dispatch({ type: 'saveContact', contact: c });
               setEditingContact(false);
             }}
@@ -115,7 +120,9 @@ export function DetailsStep() {
               </div>
             </dl>
             <p className={styles.hint}>
-              {state.contact ? 'Edited for this policy.' : 'Pre-filled from your Petzadore profile.'}
+              {state.contact
+                ? 'Updated. Phone, city and PIN code are saved to your Petzadore profile too.'
+                : 'Pre-filled from your Petzadore profile.'}
             </p>
           </>
         )}
@@ -152,16 +159,46 @@ export function DetailsStep() {
   );
 }
 
+/** The profile fields (PATCH /v1/me/profile) that differ from what is shown now. */
+function profileChanges(current: ContactDetails, next: ContactDetails): OwnerUpdate {
+  const digits = (phone: string | null) => phone?.replace(/\D/g, '').slice(-10) ?? null;
+  const changes: OwnerUpdate = {};
+  if (next.phone && digits(next.phone) !== digits(current.phone)) changes.phone = next.phone;
+  if (next.city && next.city !== current.city) changes.city = next.city;
+  if (next.postalCode && next.postalCode !== current.postalCode) changes.postalCode = next.postalCode;
+  return changes;
+}
+
 function ContactForm({
   initial,
   onSave,
   onCancel,
 }: {
   initial: ContactDetails;
-  onSave: (contact: ContactDetails) => void;
+  /** Rejects when the profile couldn't be updated; the form stays open with the error. */
+  onSave: (contact: ContactDetails) => Promise<void>;
   onCancel: () => void;
 }) {
   const [form] = Form.useForm<ContactDetails>();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(contact: ContactDetails) {
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave(contact);
+    } catch (err) {
+      if (err instanceof ApiError && err.isSessionEnded) return;
+      setError(
+        err instanceof ApiError && err.code === 'VALIDATION_ERROR'
+          ? 'Your profile didn’t accept these details. Check the phone number and PIN code.'
+          : (err as Error).message,
+      );
+      setSaving(false);
+    }
+  }
+
   return (
     <Form<ContactDetails>
       form={form}
@@ -169,7 +206,7 @@ function ContactForm({
       requiredMark={false}
       initialValues={{ ...initial, phone: initial.phone?.replace(/\D/g, '').slice(-10) }}
       onFinish={(v) =>
-        onSave({
+        save({
           name: v.name?.trim() || null,
           phone: v.phone?.trim() || null,
           email: v.email?.trim() || null,
@@ -216,11 +253,12 @@ function ContactForm({
       >
         <Input inputMode="numeric" autoComplete="postal-code" maxLength={6} />
       </Form.Item>
+      {error && <Alert type="error" showIcon title={error} />}
       <div className={styles.contactActions}>
-        <Button shape="round" onClick={onCancel}>
+        <Button shape="round" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
-        <Button type="primary" shape="round" htmlType="submit">
+        <Button type="primary" shape="round" htmlType="submit" loading={saving}>
           Save
         </Button>
       </div>

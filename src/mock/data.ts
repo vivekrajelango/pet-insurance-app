@@ -2,7 +2,7 @@
  * Sample data for mock mode. Plans mirror backend/src/plans/catalog.js (labels,
  * coverage, eligibility) and the placeholder premiums in pricing.js.
  */
-import type { Breed, CoverageRow, Owner, Pet } from '../api/types';
+import type { Breed, CoverageRow, Owner, Pet, PetFormOptions } from '../api/types';
 
 export const OWNER: Owner = {
   id: 31,
@@ -28,7 +28,8 @@ const pet = (p: Partial<Pet> & Pick<Pet, 'id' | 'slot' | 'name' | 'species'>): P
   microchipNumber: null,
   photo: null,
   city: OWNER.city,
-  owner: OWNER,
+  // Like the API: the owner embedded in a pet has no id or email
+  owner: { name: OWNER.name, phone: OWNER.phone, city: OWNER.city, postalCode: OWNER.postalCode },
   ...p,
 });
 
@@ -108,13 +109,23 @@ export const BREEDS: Breed[] = [
   'Siberian Husky',
   ...GIANT_BREEDS,
 ]
-  .map((name): Breed => ({ name, species: 'Dog' }))
+  .map((name) => ({ name, species: ['Dog'] }))
   .concat(
-    ['Indian / mixed breed', 'Persian', 'Siamese', 'Maine Coon', 'Bengal'].map((name) => ({
-      name,
-      species: 'Cat' as const,
-    })),
-  );
+    ['Indian / mixed breed', 'Persian', 'Siamese', 'Maine Coon', 'Bengal'].map((name) => ({ name, species: ['Cat'] })),
+  )
+  .map((b, i): Breed => ({ id: i + 1, ...b }));
+
+/** Same shape as GET /v1/pets/form-options. */
+export const FORM_OPTIONS: PetFormOptions = {
+  petSlots: 5,
+  species: ['Dog', 'Cat'],
+  vaccinationStatus: ['Fully vaccinated', 'Partially vaccinated', 'Not vaccinated'],
+  petFields: {
+    species: { type: 'selectbox', options: ['Dog', 'Cat'] },
+    vaccinationStatus: { type: 'selectbox', options: ['Fully vaccinated', 'Partially vaccinated', 'Not vaccinated'] },
+  },
+  ownerFields: {},
+};
 
 // ------------------------------------------------------------------ plans
 

@@ -32,7 +32,8 @@ export interface WizardState {
 export type WizardAction =
   | { type: 'selectPet'; petId: number }
   | { type: 'addPet' }
-  | { type: 'petSaved'; petId: number }
+  /** dateOfBirth: an exact date the profile couldn't store (it only has Age) */
+  | { type: 'petSaved'; petId: number; dateOfBirth?: string | null }
   | { type: 'setDateOfBirth'; dateOfBirth: string | null }
   | { type: 'selectPlan'; planId: string }
   | { type: 'saveDetails'; details: DetailsAnswers }
@@ -83,6 +84,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
         details: state.details,
         contact: state.contact,
         petId: action.petId,
+        dateOfBirth: action.dateOfBirth ?? null,
         step: 'plan',
       };
     case 'setDateOfBirth':

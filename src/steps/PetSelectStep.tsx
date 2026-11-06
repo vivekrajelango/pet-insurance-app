@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from 'antd';
+import dayjs from 'dayjs';
 import { CheckCircleFilled, PlusOutlined } from '@ant-design/icons';
 import type { Pet } from '../api/types';
 import { AppShell } from '../components/AppShell';
@@ -90,7 +91,10 @@ function PetCard({ pet, selected, onSelect }: { pet: Pet; selected: boolean; onS
       : !pet.vaccinationExpiry
         ? { text: 'Missing: vaccination expiry', tone: styles.warn }
         : {
-            text: [pet.vaccinationStatus, pet.microchipNumber && 'Microchipped'].filter(Boolean).join(' · '),
+            // No status on the profile: show the expiry instead of an empty line.
+            text:
+              [pet.vaccinationStatus, pet.microchipNumber && 'Microchipped'].filter(Boolean).join(' · ') ||
+              `Vaccination valid till ${dayjs(pet.vaccinationExpiry).format('D MMM YYYY')}`,
             tone: styles.ok,
           };
 

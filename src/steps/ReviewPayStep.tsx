@@ -48,11 +48,11 @@ export function ReviewPayStep() {
   if (pay.kind === 'confirming') return <Confirming slow={pay.slow} />;
   if (quote.loading) return <Loading />;
   if (quote.error) return <ErrorPanel error={quote.error} onRetry={quote.reload} />;
-  const { pet, plan } = quote.data!;
+  const { pet, plan, owner } = quote.data!;
   if (!pet || !plan) return <Redirect to={pet ? 'plan' : 'pet'} />;
 
   const busy = pay.kind === 'paying';
-  const contact = contactOf(pet.owner, state.contact, config.user.name);
+  const contact = contactOf(owner ?? pet.owner, state.contact, config.user.name);
 
   async function waitUntilPaid(orderId: string): Promise<Order['status']> {
     const started = Date.now();
