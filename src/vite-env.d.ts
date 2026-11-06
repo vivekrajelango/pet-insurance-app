@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_DEV_TOKEN?: string;
   /** 'true' = run on the sample data in src/mock/ (no backend, no Razorpay) */
   readonly VITE_MOCK_API?: string;
+  /** 'true' in `npm run build:standalone` (Vercel): config comes from /api/session */
+  readonly VITE_STANDALONE?: string;
 }
 
 interface ImportMeta {

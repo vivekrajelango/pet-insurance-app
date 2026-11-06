@@ -51,6 +51,23 @@ npm run build
 Writes the app into `../wp-plugin/petzadore-insurance/app/` (with `.vite/manifest.json`).
 Then clear **React dev server** in the plugin settings and zip the plugin as usual.
 
+## Vercel (standalone site)
+
+Vercel runs `npm run build:standalone` (see `vercel.json`) and serves `dist/`.
+
+- **Sample data** (default): no environment variables needed.
+- **Live staging API**: set these in Vercel → Settings → Environment Variables (Production), then redeploy:
+
+  | Variable | Value |
+  | --- | --- |
+  | `VITE_MOCK_API` | `false` |
+  | `PZI_TOKEN_SECRET` | the backend's `APP_TOKEN_SECRET` (Postman `tokenSecret`). Never `VITE_`-prefixed. |
+  | `PZI_DEMO_USER_ID` | WordPress user whose pets are shown (default `31`) |
+
+  `api/session.js` signs a 15-minute session token for that user (and renews it), and
+  `/staging-api/*` is proxied to `https://api.staging.petzadore.com` by `vercel.json`, so the
+  backend's CORS list doesn't need the Vercel domain. Anyone with the link acts as the demo user.
+
 ## Scripts
 
 | Script | What it does |

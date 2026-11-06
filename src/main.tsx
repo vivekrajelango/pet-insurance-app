@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import dayjs from 'dayjs';
 // Global reset first, so component CSS modules (same specificity) override it.
 import './styles/app.css';
-import { readConfig } from './config';
+import { fetchStandaloneConfig, readConfig } from './config';
 import { createServices } from './services';
 import { App, Providers } from './App';
 import { NotConfigured } from './components/StatusScreens';
@@ -25,7 +25,8 @@ async function renderApp(container: HTMLElement): Promise<ReactNode> {
     const { mockApp } = await import('./mock');
     return mockApp(container);
   }
-  const config = readConfig();
+  const config =
+    readConfig() ?? (import.meta.env.VITE_STANDALONE === 'true' ? await fetchStandaloneConfig() : null);
   if (!config) {
     return (
       <Providers container={container}>

@@ -29,6 +29,28 @@ declare global {
   }
 }
 
+/**
+ * Standalone (Vercel) live build: no WordPress page, so the session comes from
+ * api/session.js and API calls go through the /staging-api proxy in vercel.json.
+ */
+export async function fetchStandaloneConfig(): Promise<AppConfig> {
+  const res = await fetch(STANDALONE_SESSION_URL, { method: 'POST' });
+  if (!res.ok) throw new Error(`Session route returned ${res.status}`);
+  const session = (await res.json()) as { token: string; expiresAt: number; user: AppConfig['user'] };
+  return {
+    apiBase: '/staging-api',
+    token: session.token,
+    tokenExpiresAt: session.expiresAt,
+    refreshUrl: STANDALONE_SESSION_URL,
+    restNonce: '',
+    user: session.user,
+    loginUrl: '#login',
+    myPoliciesUrl: '',
+  };
+}
+
+const STANDALONE_SESSION_URL = '/api/session';
+
 /** Reads the page config; in `npm run dev` falls back to .env.local values. */
 export function readConfig(): AppConfig | null {
   const fromPage = window.PetzadoreInsurance;

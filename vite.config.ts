@@ -14,8 +14,9 @@ import { fileURLToPath } from 'node:url';
  *   Petzadore Insurance so the real WordPress page loads the app from here.
  *
  * - `npm run build:standalone` builds index.html into dist/ as a standalone
- *   site (used by Vercel). There is no WordPress config there, so it runs in
- *   mock mode unless VITE_MOCK_API is set otherwise.
+ *   site (used by Vercel). It runs on sample data unless VITE_MOCK_API=false;
+ *   then it gets its session from api/session.js and calls the staging API
+ *   through the /staging-api proxy in vercel.json.
  */
 const pluginAppDir = fileURLToPath(new URL('../wp-plugin/petzadore-insurance/app', import.meta.url));
 
@@ -38,7 +39,10 @@ export default defineConfig(({ mode }) => {
     // Built files are served from .../plugins/petzadore-insurance/app/, so keep URLs relative.
     base: mode === 'production' ? './' : '/',
     define: standalone
-      ? { 'import.meta.env.VITE_MOCK_API': JSON.stringify(standaloneMock) }
+      ? {
+          'import.meta.env.VITE_MOCK_API': JSON.stringify(standaloneMock),
+          'import.meta.env.VITE_STANDALONE': JSON.stringify('true'),
+        }
       : undefined,
     server: {
       port,
