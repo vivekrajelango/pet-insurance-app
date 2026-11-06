@@ -42,7 +42,7 @@ function devConfig(): AppConfig | null {
   if (!token) return null;
   const claims = decodeClaims(token);
   return {
-    apiBase: import.meta.env.VITE_API_BASE || 'http://127.0.0.1:4000',
+    apiBase: import.meta.env.VITE_API_BASE || 'https://api.staging.petzadore.com',
     token,
     tokenExpiresAt: claims.exp ? claims.exp * 1000 : Date.now() + 15 * 60_000,
     refreshUrl: '', // no WordPress here: an expired token ends the session

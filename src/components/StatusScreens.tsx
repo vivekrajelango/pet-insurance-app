@@ -134,8 +134,8 @@ export function NotConfigured() {
   if (!import.meta.env.DEV) return <ServiceUnavailable reference="NOT_CONFIGURED" />;
   return (
     <StatusCard title="Insurance is temporarily unavailable">
-      Dev: set VITE_MOCK_API=true (screens with sample data) or VITE_DEV_TOKEN in frontend/.env.local, or open
-      the WordPress page.
+      Dev: set VITE_DEV_TOKEN in .env.local (a session token for VITE_API_BASE), or VITE_MOCK_API=true for
+      sample data. Restart <code>npm run dev</code> after editing .env.local.
     </StatusCard>
   );
 }
