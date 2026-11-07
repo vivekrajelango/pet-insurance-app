@@ -21,6 +21,17 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Message to show a member for a failed call. The backend's own errors carry a readable
+ * message; request-validation errors (400 VALIDATION_ERROR) carry schema text instead.
+ */
+export function userMessage(err: unknown): string {
+  if (err instanceof ApiError && err.code === 'VALIDATION_ERROR') {
+    return 'Some details weren’t accepted. Please check them and try again.';
+  }
+  return (err as Error).message;
+}
+
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiClient {

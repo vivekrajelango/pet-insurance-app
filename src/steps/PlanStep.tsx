@@ -3,7 +3,7 @@ import { Alert, Button, DatePicker, Drawer, Tag } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { ApiError } from '../api/client';
+import { ApiError, userMessage } from '../api/client';
 import type { MatchResult, Pet, Plan } from '../api/types';
 import { AppShell } from '../components/AppShell';
 import { PetAvatar } from '../components/PetAvatar';
@@ -339,7 +339,7 @@ function DobBanner({ reason, optional }: { reason: string; optional?: boolean })
       dispatch({ type: 'setDateOfBirth', dateOfBirth: dob });
     } catch (err) {
       if (err instanceof ApiError && err.isSessionEnded) return;
-      setError((err as Error).message);
+      setError(userMessage(err));
       setChecking(false);
     }
   }

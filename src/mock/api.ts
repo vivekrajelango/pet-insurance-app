@@ -11,6 +11,7 @@ import type {
   IneligiblePlan,
   MatchResult,
   NewPetInput,
+  NotificationPreferences,
   Order,
   Owner,
   Pet,
@@ -45,7 +46,13 @@ interface Store {
   orders: Record<string, MockOrder>;
   /** Contact details saved with PATCH /v1/me/profile (missing in stores saved before it existed) */
   owner?: Owner;
+  /** Notification opt-ins and registered push endpoints (same caveat) */
+  preferences?: NotificationPreferences;
+  pushEndpoints?: string[];
 }
+
+/** Like the backend: every channel on until the member opts out. */
+const DEFAULT_PREFERENCES: NotificationPreferences = { email: true, sms: true, whatsapp: true, push: true };
 
 /** Same rule as the backend: Indian mobile, +91 optional. */
 const INDIAN_MOBILE = /^(\+?91[\s-]?|0)?[6-9](?:[\s-]?[0-9]){9}$/;
@@ -211,12 +218,12 @@ export function createMockEndpoints(scenario: Scenario, endSession: () => never)
 
   const findPet = (petId: number) => {
     const pet = store.pets.find((p) => p.id === petId);
-    if (!pet) throw new ApiError(404, 'PET_NOT_FOUND', 'That pet is no longer on your profile.');
+    if (!pet) throw new ApiError(404, 'NOT_FOUND', 'Pet not found');
     return pet;
   };
   const findOrder = (orderId: string) => {
     const order = store.orders[orderId];
-    if (!order) throw new ApiError(404, 'ORDER_NOT_FOUND', 'We couldn’t find that order.');
+    if (!order) throw new ApiError(404, 'NOT_FOUND', 'Order not found');
     return order;
   };
   const publicOrder = ({ pollsUntilPaid: _, ...order }: MockOrder): Order => order;
@@ -335,9 +342,9 @@ export function createMockEndpoints(scenario: Scenario, endSession: () => never)
         const ageFromDob = dayjs().diff(dateOfBirth, 'month') / 12;
         if (Math.abs(ageFromDob - pet.ageYears) > 1.5) {
           throw new ApiError(
-            422,
-            'DOB_MISMATCH',
-            `That date of birth makes ${pet.name} ${Math.floor(ageFromDob)}, but the profile says ${pet.ageYears}. It must be within 1.5 years of the profile age.`,
+            400,
+            'BAD_REQUEST',
+            `Date of birth doesn't match the age in ${pet.name ?? 'the pet'}'s profile (${pet.ageYears} years)`,
           );
         }
       }
@@ -351,7 +358,7 @@ export function createMockEndpoints(scenario: Scenario, endSession: () => never)
       const plan = match.plans.find((p) => p.id === planId);
       const mockPlan = PLANS.find((p) => p.id === planId);
       if (!plan || !mockPlan)
-        throw new ApiError(422, 'PLAN_NOT_ELIGIBLE', 'This plan is no longer available.');
+        throw new ApiError(422, 'NOT_ELIGIBLE', 'This plan is no longer available.');
       const q = quote(mockPlan);
       const order: MockOrder = {
         id: `PZI-${randomId(6)}`,
@@ -404,6 +411,45 @@ export function createMockEndpoints(scenario: Scenario, endSession: () => never)
       order.paymentId = payment.razorpay_payment_id;
       save();
       return publicOrder(order);
+    },
+
+    async getNotificationPreferences(signal) {
+      await wait(200, signal);
+      return { preferences: store.preferences ?? DEFAULT_PREFERENCES };
+    },
+
+    async updateNotificationPreferences(changes) {
+      await wait(300);
+      store.preferences = { ...(store.preferences ?? DEFAULT_PREFERENCES), ...changes };
+      save();
+      return { preferences: store.preferences };
+    },
+
+    async getPushPublicKey(signal) {
+      await wait(200, signal);
+      // Like staging today: no VAPID keys yet.
+      throw new ApiError(503, 'UNAVAILABLE', 'Push notifications are not configured');
+    },
+
+    async subscribeToPush(subscription) {
+      await wait(300);
+      store.pushEndpoints = [...new Set([...(store.pushEndpoints ?? []), subscription.endpoint])];
+      save();
+      return { ok: true };
+    },
+
+    async unsubscribeFromPush(endpoint) {
+      await wait(300);
+      if (!store.pushEndpoints?.includes(endpoint)) throw new ApiError(404, 'NOT_FOUND', 'Subscription not found');
+      store.pushEndpoints = store.pushEndpoints.filter((e) => e !== endpoint);
+      save();
+      return { ok: true };
+    },
+
+    async getNotificationDeliveries(_limit, signal) {
+      await wait(200, signal);
+      // Like staging's example: nothing sent to this member yet.
+      return { deliveries: [] };
     },
 
     async recordPaymentFailure(orderId, failure) {

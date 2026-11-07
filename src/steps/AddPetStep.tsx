@@ -3,7 +3,7 @@ import { Alert, Button, Card, DatePicker, Form, Input, InputNumber, Select } fro
 import { SearchOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { ApiError } from '../api/client';
+import { ApiError, userMessage } from '../api/client';
 import type { NewPetInput } from '../api/types';
 import { AppShell } from '../components/AppShell';
 import { useAsync } from '../hooks/useAsync';
@@ -46,7 +46,11 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { pets, loading: petsLoading } = usePets();
-  const breeds = useAsync((signal) => api.getBreeds({}, signal).then((r) => r.breeds), 'breeds');
+  // The library filtered by species; reloads when Dog / Cat changes (the backend caches it).
+  const breeds = useAsync(
+    (signal) => api.getBreeds({ species: species === 'Cat' ? 'cat' : 'dog' }, signal).then((r) => r.breeds),
+    `breeds:${species}`,
+  );
   const formOptions = useAsync((signal) => api.getPetFormOptions(signal), 'pet-form-options');
   const vaccinationOptions = (formOptions.data?.vaccinationStatus ?? FALLBACK_VACCINATION).map((v) => ({
     value: v,
@@ -59,9 +63,7 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
     : Array.from({ length: MAX_PETS }, (_, i) => i + 1).find((s) => !used.has(s));
   const breedOptions = [
     MIXED_BREED,
-    ...(breeds.data ?? [])
-      .filter((b) => b.name !== MIXED_BREED && b.species.some((s) => s.toLowerCase() === species.toLowerCase()))
-      .map((b) => b.name),
+    ...(breeds.data ?? []).filter((b) => b.name !== MIXED_BREED).map((b) => b.name),
   ].map((name) => ({ value: name, label: name }));
 
   async function onFinish(values: FormValues) {
@@ -133,6 +135,10 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
           layout="vertical"
           requiredMark={false}
           initialValues={{ species: 'Dog' }}
+          // A breed from the other species' list no longer fits.
+          onValuesChange={(changed) => {
+            if ('species' in changed) form.setFieldValue('breed', undefined);
+          }}
           onFinish={onFinish}
           className={styles.form}
         >
@@ -162,6 +168,7 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
                 showSearch
                 placeholder="Search breed"
                 options={breedOptions}
+                filterSort={byMatch}
                 loading={breeds.loading}
                 suffixIcon={<SearchOutlined />}
                 notFoundContent={`No match. Try “${MIXED_BREED}”.`}
@@ -249,15 +256,21 @@ export function AddPetStep({ firstPet }: { firstPet?: boolean }) {
   );
 }
 
+/** While searching: names starting with the text first (like GET /v1/breeds?q=), then A–Z. */
+function byMatch(a: { label: string }, b: { label: string }, { searchValue }: { searchValue: string }) {
+  const q = searchValue.trim().toLowerCase();
+  if (!q) return 0; // not searching: keep the list order ("Indian / mixed breed" first)
+  const rank = (label: string) => (label.toLowerCase().startsWith(q) ? 0 : 1);
+  return rank(a.label) - rank(b.label) || a.label.localeCompare(b.label);
+}
+
 function saveErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.code === 'PET_SLOTS_FULL') {
       return `All ${MAX_PETS} pet slots on your profile are in use. Remove a pet on your Petzadore profile to add another.`;
     }
-    // The backend's validation messages are technical (e.g. "body/microchipNumber must match…").
-    if (err.code === 'VALIDATION_ERROR') return 'Some details weren’t accepted. Please check the form and try again.';
   }
-  return (err as Error).message;
+  return userMessage(err);
 }
 
 /** Dog / Cat buttons (a Form.Item control: gets value + onChange). */

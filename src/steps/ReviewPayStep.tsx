@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button, Card, Checkbox, Spin, Tag } from 'antd';
-import { ApiError } from '../api/client';
+import { ApiError, userMessage } from '../api/client';
 import type { Order, Plan } from '../api/types';
 import { AppShell } from '../components/AppShell';
 import { PetAvatar } from '../components/PetAvatar';
@@ -103,7 +103,7 @@ export function ReviewPayStep() {
       // Otherwise still processing after 2 minutes: "Still confirming" stays up; the email follows.
     } catch (err) {
       if (err instanceof ApiError && err.isSessionEnded) return;
-      setPay({ kind: 'failed', message: (err as Error).message });
+      setPay({ kind: 'failed', message: userMessage(err) });
     }
   }
 

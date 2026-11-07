@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Alert, Button, Card, Form, Input } from 'antd';
-import { ApiError } from '../api/client';
+import { ApiError, userMessage } from '../api/client';
 import type { OwnerUpdate } from '../api/types';
 import { AppShell } from '../components/AppShell';
 import { OrderSummary } from '../components/OrderSummary';
@@ -193,7 +193,7 @@ function ContactForm({
       setError(
         err instanceof ApiError && err.code === 'VALIDATION_ERROR'
           ? 'Your profile didn’t accept these details. Check the phone number and PIN code.'
-          : (err as Error).message,
+          : userMessage(err),
       );
       setSaving(false);
     }

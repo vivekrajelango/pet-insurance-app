@@ -6,6 +6,8 @@ import type {
   CurrentUser,
   MatchResult,
   NewPetInput,
+  NotificationDelivery,
+  NotificationPreferences,
   Order,
   OrderStatus,
   Owner,
@@ -16,6 +18,7 @@ import type {
   PetsResponse,
   PetWriteResponse,
   PlanCatalogue,
+  PushSubscriptionInput,
   RazorpaySuccess,
 } from './types';
 
@@ -80,6 +83,35 @@ export function createEndpoints(api: ApiClient) {
 
     recordPaymentFailure: (orderId: string, failure: PaymentFailure) =>
       api.request<Order>('POST', `/v1/orders/${encodeURIComponent(orderId)}/failed`, failure),
+
+    getNotificationPreferences: (signal?: AbortSignal) =>
+      api.request<{ preferences: NotificationPreferences }>('GET', '/v1/notifications/preferences', undefined, {
+        signal,
+      }),
+
+    /** Send only the channels to change (at least one). Replies with all four. */
+    updateNotificationPreferences: (changes: Partial<NotificationPreferences>) =>
+      api.request<{ preferences: NotificationPreferences }>('PUT', '/v1/notifications/preferences', changes),
+
+    /** VAPID key for pushManager.subscribe(). 503 UNAVAILABLE until push is configured on the backend. */
+    getPushPublicKey: (signal?: AbortSignal) =>
+      api.request<{ publicKey: string }>('GET', '/v1/notifications/push/public-key', undefined, { signal }),
+
+    subscribeToPush: (subscription: PushSubscriptionInput) =>
+      api.request<{ ok: true }>('POST', '/v1/notifications/push/subscriptions', subscription),
+
+    /** 404 when that subscription isn't registered. */
+    unsubscribeFromPush: (endpoint: string) =>
+      api.request<{ ok: true }>('DELETE', '/v1/notifications/push/subscriptions', { endpoint }),
+
+    /** The member's own notification log, newest first. limit: 1–100, default 50. */
+    getNotificationDeliveries: (limit?: number, signal?: AbortSignal) =>
+      api.request<{ deliveries: NotificationDelivery[] }>(
+        'GET',
+        `/v1/notifications/deliveries${query({ limit })}`,
+        undefined,
+        { signal },
+      ),
   };
 }
 

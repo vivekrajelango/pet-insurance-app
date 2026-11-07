@@ -137,6 +137,8 @@ export interface CoverageRow {
   display: string;
   limit?: number;
   percent?: number;
+  /** OPD wallet: amount the member pays per visit, e.g. 500 */
+  deductiblePerVisit?: number;
 }
 
 export interface Premium {
@@ -247,4 +249,39 @@ export interface PaymentFailure {
   code?: string;
   description?: string;
   reason?: string;
+}
+
+// ------------------------------------------------------------------ notifications
+
+export type NotificationChannel = 'email' | 'sms' | 'whatsapp' | 'push';
+
+/** Per-channel opt-in; true = send on that channel. */
+export type NotificationPreferences = Record<NotificationChannel, boolean>;
+
+/** The browser's PushSubscription.toJSON(), for POST /v1/notifications/push/subscriptions. */
+export interface PushSubscriptionInput {
+  /** https URL from the browser's push service */
+  endpoint: string;
+  expirationTime?: number | null;
+  keys: { p256dh: string; auth: string };
+}
+
+/** One entry of GET /v1/notifications/deliveries (newest first). */
+export interface NotificationDelivery {
+  id: string;
+  /** e.g. payment_confirmation, certificate_ready, policy_status_update, renewal_reminder */
+  type: string;
+  channel: NotificationChannel;
+  /** queued | sending | retrying | sent | failed | cancelled … */
+  status: string;
+  reason: string | null;
+  /** Address it went to, masked by the backend */
+  to: string;
+  attempts: number;
+  lastError: string | null;
+  /** What it is about, e.g. an order id */
+  reference: string | null;
+  scheduledFor: string | null;
+  sentAt: string | null;
+  createdAt: string;
 }
